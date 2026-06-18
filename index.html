@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MID TRAFICT — Tu copiloto contra el estrés vial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============ RESET & BASE ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --asphalt: #121214;
+  --asphalt-2: #1B1C1F;
+  --asphalt-3: #232428;
+  --rojo: #FF4D5E;
+  --rojo-soft: rgba(255,77,94,0.12);
+  --ambar: #FFB627;
+  --ambar-soft: rgba(255,182,39,0.12);
+  --verde: #2EC4B6;
+  --verde-soft: rgba(46,196,182,0.12);
+  --texto: #F5F5F2;
+  --texto-suave: rgba(245,245,242,0.64);
+  --texto-tenue: rgba(245,245,242,0.38);
+  --borde: rgba(245,245,242,0.10);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--asphalt);
+  color: var(--texto);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+a { color: inherit; }
+
+button { font-family: inherit; cursor: pointer; }
+
+:focus-visible {
+  outline: 2px solid var(--verde);
+  outline-offset: 3px;
+}
+
+.display {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 900;
+  line-height: 0.95;
+}
+
+.mono { font-family: 'Space Mono', monospace; }
+
+.eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 1.1rem;
+  display: inline-block;
+}
+
+.eyebrow--rojo { color: var(--rojo); }
+.eyebrow--ambar { color: var(--ambar); }
+.eyebrow--verde { color: var(--verde); }
+
+.title-xl {
+  font-size: clamp(1.9rem, 4vw, 3.1rem);
+  margin-bottom: 1.4rem;
+  letter-spacing: -0.01em;
+}
+
+.lead {
+  color: var(--texto-suave);
+  font-size: 1.02rem;
+  line-height: 1.75;
+  max-width: 620px;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 1.75rem;
+}
+
+section { padding: 6.5rem 0; position: relative; }
+
+/* Section colour washes — the visual arc of the page travels
+   red (problema) -> ámbar (herramientas) -> verde (impacto/calma) */
+.section--problema {
+  background: radial-gradient(ellipse 60% 50% at 85% 0%, var(--rojo-soft), transparent 60%), var(--asphalt);
+}
+.section--toolkit {
+  background: radial-gradient(ellipse 60% 50% at 10% 10%, var(--ambar-soft), transparent 60%), var(--asphalt);
+}
+.section--ruta {
+  background:
+    radial-gradient(circle at 85% 0%, var(--ambar-soft), transparent 45%),
+    radial-gradient(circle at 10% 100%, var(--verde-soft), transparent 45%),
+    var(--asphalt);
+}
+.section--impacto {
+  background: radial-gradient(ellipse 60% 50% at 15% 0%, var(--verde-soft), transparent 60%), var(--asphalt);
+}
+.section--frases {
+  background: radial-gradient(circle at 50% 40%, var(--verde-soft), transparent 65%), var(--asphalt-2);
+}
+.section--cierre {
+  background: linear-gradient(180deg, var(--asphalt) 0%, #0B0B0D 100%);
+  text-align: center;
+}
+
+/* ============ SEMAFORO ICON (recurring motif) ============ */
+.semaforo {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px 4px;
+  background: var(--asphalt-3);
+  border-radius: 6px;
+  border: 1px solid var(--borde);
+}
+
+.semaforo .luz {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(245,245,242,0.15);
+}
+
+.semaforo.grande .luz { width: 22px; height: 22px; }
+.semaforo.grande { padding: 14px 10px; gap: 12px; border-radius: 14px; }
+
+.semaforo .luz.rojo { animation: pulseLuz 4.5s ease-in-out infinite; background: var(--rojo); box-shadow: 0 0 10px rgba(255,77,94,0.7); }
+.semaforo .luz.ambar { animation: pulseLuz 4.5s ease-in-out infinite; animation-delay: 1.5s; background: var(--ambar); box-shadow: 0 0 10px rgba(255,182,39,0.7); }
+.semaforo .luz.verde { animation: pulseLuz 4.5s ease-in-out infinite; animation-delay: 3s; background: var(--verde); box-shadow: 0 0 10px rgba(46,196,182,0.7); }
+
+@keyframes pulseLuz {
+  0%, 28%   { opacity: 1; }
+  33%, 100% { opacity: 0.22; }
+}
+
+/* ============ NAV ============ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.75rem;
+  background: rgba(18,18,20,0.82);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--borde);
+}
+
+.nav-brand { display: flex; align-items: center; gap: 0.7rem; }
+
+.nav-brand-text {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.nav-links { display: flex; gap: 1.6rem; list-style: none; }
+
+.nav-links a {
+  font-size: 0.78rem;
+  font-family: 'Space Mono', monospace;
+  text-decoration: none;
+  color: var(--texto-suave);
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--ambar); }
+
+/* fixed side progress semaforo */
+.scroll-semaforo {
+  position: fixed;
+  right: 1.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 8px;
+  background: rgba(27,28,31,0.7);
+  border: 1px solid var(--borde);
+  border-radius: 100px;
+  backdrop-filter: blur(8px);
+}
+
+.scroll-semaforo .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(245,245,242,0.14);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.scroll-semaforo .dot.lit-rojo { background: var(--rojo); box-shadow: 0 0 8px rgba(255,77,94,0.8); }
+.scroll-semaforo .dot.lit-ambar { background: var(--ambar); box-shadow: 0 0 8px rgba(255,182,39,0.8); }
+.scroll-semaforo .dot.lit-verde { background: var(--verde); box-shadow: 0 0 8px rgba(46,196,182,0.8); }
+
+/* ============ HERO ============ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  padding: 7rem 1.75rem 4rem;
+  overflow: hidden;
+}
+
+.hero-lane {
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 3px;
+  transform: translateX(-50%);
+  background-image: repeating-linear-gradient(0deg, rgba(255,182,39,0.4) 0 22px, transparent 22px 46px);
+  opacity: 0.4;
+  animation: laneMove 1.1s linear infinite;
+}
+
+@keyframes laneMove {
+  from { background-position-y: 0; }
+  to   { background-position-y: 46px; }
+}
+
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  margin-bottom: 2.2rem;
+}
+
+.hero-title {
+  font-size: clamp(3.2rem, 13vw, 8rem);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+
+.hero-title .hl { color: var(--ambar); }
+
+.hero-meaning {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.7rem, 1.6vw, 0.86rem);
+  color: var(--texto-tenue);
+  max-width: 560px;
+  margin-bottom: 2rem;
+  line-height: 1.8;
+}
+
+.hero-meaning b { color: var(--texto-suave); font-weight: 700; }
+
+.hero-sub {
+  color: var(--texto-suave);
+  max-width: 560px;
+  font-size: 1.08rem;
+  line-height: 1.75;
+  margin-bottom: 3rem;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  margin-bottom: 3.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.stat-num {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  font-size: 2.6rem;
+  color: var(--verde);
+  line-height: 1;
+}
+
+.stat-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--texto-tenue);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 0.4rem;
+  max-width: 140px;
+}
+
+.scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--texto-tenue);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.scroll-cue .chev {
+  animation: bounce 1.6s ease-in-out infinite;
+  font-size: 1rem;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(6px); opacity: 1; }
+}
+
+/* ============ SCROLL REVEAL ============ */
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ============ OBJETIVO ============ */
+.objetivo-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+.alert-panel {
+  margin-top: 1.6rem;
+  padding: 1.4rem 1.6rem;
+  background: var(--asphalt-3);
+  border: 1px solid rgba(255,77,94,0.3);
+  border-radius: 14px;
+}
+
+.alert-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rojo);
+}
+
+.alert-panel p {
+  font-size: 0.96rem;
+  color: var(--texto-suave);
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.6rem; }
+
+.chip {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  padding: 7px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--borde);
+  color: var(--texto-suave);
+  background: var(--asphalt-2);
+}
+
+/* gauge */
+.gauge-card {
+  background: var(--asphalt-2);
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+  padding: 2.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.dial-wrap { position: relative; width: 180px; height: 180px; margin-bottom: 1.4rem; }
+
+.dial {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: conic-gradient(var(--verde) 0deg 120deg, var(--ambar) 120deg 240deg, var(--rojo) 240deg 360deg);
+  position: relative;
+}
+
+.dial::after {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  background: var(--asphalt-2);
+}
+
+.dial-needle {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 4px;
+  height: 64px;
+  background: var(--texto);
+  border-radius: 4px;
+  transform-origin: bottom center;
+  transform: translate(-50%, -100%) rotate(300deg);
+}
+
+.dial-pivot {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 12px; height: 12px;
+  background: var(--texto);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.gauge-label { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--texto-tenue); }
+.gauge-value { font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 1.6rem; color: var(--rojo); margin-top: 0.3rem; }
+
+.goal-banner {
+  margin-top: 4rem;
+  padding: 2.4rem;
+  background: var(--asphalt-2);
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+}
+
+.goal-banner .eyebrow { margin-bottom: 0.8rem; }
+
+.goal-banner p {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+  line-height: 1.25;
+  color: var(--texto);
+}
+
+/* ============ TECNICAS ============ */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.1rem;
+  margin-top: 3rem;
+}
+
+.tech-card {
+  background: var(--asphalt-2);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.tech-card[data-color="rojo"] { --tc: var(--rojo); --tc-soft: var(--rojo-soft); }
+.tech-card[data-color="ambar"] { --tc: var(--ambar); --tc-soft: var(--ambar-soft); }
+.tech-card[data-color="verde"] { --tc: var(--verde); --tc-soft: var(--verde-soft); }
+
+.tech-card.open { border-color: var(--tc); }
+
+.tech-card-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.3rem 1.4rem;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: var(--texto);
+}
+
+.tech-icon {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--tc-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.tech-head-text { flex: 1; }
+
+.tech-head-text h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+
+.tech-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tc);
+}
+
+.tech-toggle {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--texto-tenue);
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+
+.tech-card.open .tech-toggle { transform: rotate(45deg); color: var(--tc); }
+
+.tech-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.tech-card.open .tech-body { max-height: 480px; }
+
+.tech-body-inner { padding: 0 1.4rem 1.5rem; }
+
+.tech-body-inner p {
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+  line-height: 1.7;
+  margin-bottom: 0.4rem;
+}
+
+/* breathing dial */
+.breath-box {
+  margin-top: 1.2rem;
+  padding: 1.4rem;
+  background: var(--asphalt-3);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.breath-ring-wrap { position: relative; width: 96px; height: 96px; flex-shrink: 0; }
+
+.breath-ring-wrap svg { width: 96px; height: 96px; }
+
+.ring-bg { fill: none; stroke: rgba(245,245,242,0.08); stroke-width: 8; }
+.ring-fill { fill: none; stroke: var(--verde); stroke-width: 8; stroke-linecap: round; }
+
+.breath-num {
+  position: absolute;
+  inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.breath-info { flex: 1; min-width: 140px; }
+
+.breath-state {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.6rem;
+}
+
+.btn-breath {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.76rem;
+  padding: 8px 18px;
+  border-radius: 100px;
+  border: 1px solid var(--verde);
+  background: rgba(46,196,182,0.12);
+  color: var(--verde);
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-breath:hover { background: var(--verde); color: var(--asphalt); }
+
+/* ============ RUTA ============ */
+.ruta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+  margin-top: 3rem;
+  position: relative;
+}
+
+.parada {
+  background: var(--asphalt-2);
+  border: 1px solid var(--borde);
+  border-radius: 18px;
+  padding: 1.8rem;
+}
+
+.parada-num {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--asphalt);
+  margin-bottom: 1.2rem;
+}
+
+.parada[data-fase="antes"] .parada-num { background: var(--rojo); }
+.parada[data-fase="durante"] .parada-num { background: var(--ambar); }
+.parada[data-fase="despues"] .parada-num { background: var(--verde); }
+
+.parada h3 { font-size: 1.15rem; margin-bottom: 0.3rem; font-weight: 600; }
+
+.parada-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--texto-tenue);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 1.1rem;
+  display: block;
+}
+
+.parada ul { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+
+.parada li {
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+  line-height: 1.6;
+  padding-left: 1.1rem;
+  position: relative;
+}
+
+.parada li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--texto-tenue);
+}
+
+/* ============ IMPACTO ============ */
+.impacto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.impacto-card {
+  background: var(--asphalt-2);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 1.6rem 1.4rem;
+  text-align: center;
+}
+
+.impacto-icon {
+  width: 50px; height: 50px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: var(--verde-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+}
+
+.impacto-card h3 { font-size: 0.94rem; font-weight: 600; margin-bottom: 0.4rem; }
+.impacto-card p { font-size: 0.82rem; color: var(--texto-suave); }
+
+.resultados {
+  margin-top: 3.5rem;
+  padding: 2.2rem 2.4rem;
+  background: var(--asphalt-2);
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.resultados h3 {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.resultados > div:first-child p { color: var(--texto-suave); font-size: 0.92rem; line-height: 1.7; }
+
+.check-list { list-style: none; display: flex; flex-direction: column; gap: 0.85rem; }
+
+.check-list li {
+  display: flex; align-items: center; gap: 0.7rem;
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+}
+
+.check-mark {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--verde-soft);
+  color: var(--verde);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+/* ============ FRASES ============ */
+.frase-wrap { display: flex; flex-direction: column; align-items: center; margin-top: 3rem; }
+
+.frase-card {
+  width: 100%;
+  max-width: 640px;
+  background: var(--asphalt-3);
+  border: 1px solid var(--borde);
+  border-radius: 22px;
+  padding: 3.2rem 2.6rem;
+  text-align: center;
+  position: relative;
+}
+
+.frase-quote-mark {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-size: 3.5rem;
+  color: var(--verde);
+  opacity: 0.5;
+  line-height: 1;
+  margin-bottom: 0.6rem;
+}
+
+.frase-text {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  line-height: 1.3;
+  transition: opacity 0.25s ease;
+}
+
+.frase-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 2.4rem;
+}
+
+.btn-frase {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  padding: 10px 22px;
+  border-radius: 100px;
+  border: 1px solid var(--verde);
+  background: rgba(46,196,182,0.1);
+  color: var(--verde);
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-frase:hover { background: var(--verde); color: var(--asphalt); }
+
+.frase-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--texto-tenue);
+}
+
+/* ============ CIERRE ============ */
+.cierre-title {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.8rem, 4.4vw, 3.2rem);
+  max-width: 760px;
+  margin: 0 auto 1.6rem;
+  line-height: 1.15;
+}
+
+.cierre-text {
+  color: var(--texto-suave);
+  max-width: 620px;
+  margin: 0 auto 2.6rem;
+  font-size: 0.98rem;
+  line-height: 1.8;
+}
+
+.btn-cta {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  padding: 14px 32px;
+  border-radius: 100px;
+  border: none;
+  background: var(--verde);
+  color: var(--asphalt);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.btn-cta:hover { transform: translateY(-2px); }
+
+.btn-cta.sent { background: var(--asphalt-3); color: var(--verde); border: 1px solid var(--verde); }
+
+/* ============ FOOTER ============ */
+footer {
+  padding: 2.4rem 1.75rem;
+  text-align: center;
+  border-top: 1px solid var(--borde);
+  background: #0B0B0D;
+}
+
+footer p { font-size: 0.78rem; color: var(--texto-tenue); }
+footer strong { color: var(--verde); font-weight: 600; }
+footer p + p { margin-top: 0.4rem; }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 880px) {
+  .objetivo-grid, .resultados { grid-template-columns: 1fr; }
+  .tech-grid { grid-template-columns: 1fr; }
+  .ruta { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .scroll-semaforo { display: none; }
+  section { padding: 4.5rem 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="semaforo"><span class="luz rojo"></span><span class="luz ambar"></span><span class="luz verde"></span></span>
+    <span class="nav-brand-text">MID TRAFICT</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#objetivo">Objetivo</a></li>
+    <li><a href="#tecnicas">Técnicas</a></li>
+    <li><a href="#ruta">Recomendaciones</a></li>
+    <li><a href="#impacto">Impacto</a></li>
+    <li><a href="#frases">Frases</a></li>
+  </ul>
+</nav>
+
+<div class="scroll-semaforo" id="scrollSemaforo">
+  <span class="dot" id="dotRojo"></span>
+  <span class="dot" id="dotAmbar"></span>
+  <span class="dot" id="dotVerde"></span>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-lane"></div>
+
+  <span class="hero-eyebrow">Psicología · Creatividad e Innovación</span>
+
+  <h1 class="hero-title display">MID <span class="hl">TRAFICT</span></h1>
+
+  <p class="hero-meaning mono">
+    <b>M.I.D.</b> = Manejo Inteligente del Distrés &nbsp;·&nbsp; <b>TRAFICT</b> = tu copiloto psicológico contra el estrés vial
+  </p>
+
+  <p class="hero-sub">
+    En Tarapoto, el tráfico ya no solo roba minutos: roba calma, paciencia y bienestar
+    emocional. MID TRAFICT propone recuperarlos, semáforo a semáforo.
+  </p>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num display">2-3h</div>
+      <div class="stat-label">atrapados en el tráfico cada día</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num display">6</div>
+      <div class="stat-label">técnicas del toolkit psicológico</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num display">5</div>
+      <div class="stat-label">grupos directamente beneficiados</div>
+    </div>
+  </div>
+
+  <div class="scroll-cue">
+    <span>Descubre el plan</span>
+    <span class="chev">⌄</span>
+  </div>
+</section>
+
+<!-- OBJETIVO -->
+<section class="section--problema" id="objetivo">
+  <div class="container">
+    <div class="objetivo-grid">
+      <div class="reveal">
+        <span class="eyebrow eyebrow--rojo">El problema · Tarapoto</span>
+        <h2 class="title-xl display">Cada mañana, miles de personas salen de casa ya estresadas</h2>
+        <p class="lead">
+          El crecimiento del parque automotor y la congestión en las vías principales
+          convirtieron el traslado diario en una fuente constante de ansiedad, frustración,
+          irritabilidad y cansancio emocional. No es solo perder tiempo: es llegar agotado
+          al trabajo, al aula o a casa, con el ánimo ya gastado antes de empezar el día.
+        </p>
+
+        <div class="alert-panel">
+          <div class="alert-panel-head">⚠ Nuestro punto de vista</div>
+          <p>
+            "Los ciudadanos urbanos necesitan estrategias de apoyo emocional y manejo del
+            estrés, porque la congestión vehicular afecta su salud mental y reduce su
+            calidad de vida."
+          </p>
+        </div>
+
+        <div class="chip-row">
+          <span class="chip">Reducir el estrés diario</span>
+          <span class="chip">Sentirse en calma en el trayecto</span>
+          <span class="chip">Herramientas psicológicas prácticas</span>
+          <span class="chip">Mejorar el bienestar emocional</span>
+        </div>
+      </div>
+
+      <div class="gauge-card reveal">
+        <div class="dial-wrap">
+          <div class="dial"></div>
+          <div class="dial-needle"></div>
+          <div class="dial-pivot"></div>
+        </div>
+        <span class="gauge-label mono">Nivel de estrés en el tráfico de Tarapoto</span>
+        <span class="gauge-value">ALTO</span>
+      </div>
+    </div>
+
+    <div class="goal-banner reveal">
+      <span class="eyebrow eyebrow--rojo">Nuestro objetivo</span>
+      <p>
+        Brindar a los ciudadanos de Tarapoto un conjunto de herramientas psicológicas
+        prácticas y accesibles para reducir el estrés generado por la congestión vehicular
+        y fortalecer su bienestar emocional día a día.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- TECNICAS -->
+<section class="section--toolkit" id="tecnicas">
+  <div class="container">
+    <div class="reveal">
+      <span class="eyebrow eyebrow--ambar">El toolkit psicológico</span>
+      <h2 class="title-xl display">6 herramientas para regular el distrés vial</h2>
+      <p class="lead">
+        Cada técnica está codificada como un semáforo: roja para el alivio inmediato,
+        ámbar para la práctica diaria, verde para el cambio profundo. Toca una tarjeta
+        para ver cómo aplicarla.
+      </p>
+    </div>
+
+    <div class="tech-grid">
+
+      <div class="tech-card reveal" data-color="rojo">
+        <button class="tech-card-head">
+          <span class="tech-icon">🌬</span>
+          <span class="tech-head-text">
+            <h3>Respiración 4-4-6</h3>
+            <span class="tech-badge mono">Alivio inmediato</span>
+          </span>
+          <span class="tech-toggle">+</span>
+        </button>
+        <div class="tech-body">
+          <div class="tech-body-inner">
+            <p>Inhala 4 segundos, sostén 4, exhala 6. Activa el nervio vago y baja la frecuencia cardíaca en menos de un minuto, incluso en pleno semáforo.</p>
+            <div class="breath-box">
+              <div class="breath-ring-wrap">
+                <svg viewBox="0 0 96 96">
+                  <circle class="ring-bg" cx="48" cy="48" r="40"></circle>
+                  <circle class="ring-fill" id="ringFill" cx="48" cy="48" r="40" style="stroke-dasharray:251.2; stroke-dashoffset:251.2; transform:rotate(-90deg); transform-origin:48px 48px;"></circle>
+                </svg>
+                <div class="breath-num" id="breathNum">—</div>
+              </div>
+              <div class="breath-info">
+                <div class="breath-state mono" id="breathState">listo para comenzar</div>
+                <button class="btn-breath" id="breathBtn">Iniciar ejercicio</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tech-card reveal" data-color="rojo">
+        <button class="tech-card-head">
+          <span class="tech-icon">✊</span>
+          <span class="tech-head-text">
+            <h3>Relajación muscular progresiva</h3>
+            <span class="tech-badge mono">Alivio inmediato</span>
+          </span>
+          <span class="tech-toggle">+</span>
+        </button>
+        <div class="tech-body">
+          <div class="tech-body-inner">
+            <p>En cada semáforo en rojo, tensa 5 segundos y suelta de golpe: manos en el volante, hombros hacia las orejas y mandíbula apretada. La tensión psicológica baja junto con la muscular.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tech-card reveal" data-color="ambar">
+        <button class="tech-card-head">
+          <span class="tech-icon">🧭</span>
+          <span class="tech-head-text">
+            <h3>Mindfulness vial</h3>
+            <span class="tech-badge mono">Práctica diaria</span>
+          </span>
+          <span class="tech-toggle">+</span>
+        </button>
+        <div class="tech-body">
+          <div class="tech-body-inner">
+            <p>Observa sin juzgar. Nombra lo que ves en lugar de interpretarlo: "un carro frenó" en vez de "ese conductor lo hizo a propósito". Ancla la atención en sensaciones físicas, no en el reloj.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tech-card reveal" data-color="ambar">
+        <button class="tech-card-head">
+          <span class="tech-icon">📓</span>
+          <span class="tech-head-text">
+            <h3>Registro diario de emociones</h3>
+            <span class="tech-badge mono">Práctica diaria</span>
+          </span>
+          <span class="tech-toggle">+</span>
+        </button>
+        <div class="tech-body">
+          <div class="tech-body-inner">
+            <p>Anota en menos de dos minutos qué sentiste durante el trayecto y qué lo disparó. Con unos días de registro aparecen patrones claros de horarios y rutas más estresantes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tech-card reveal" data-color="verde">
+        <button class="tech-card-head">
+          <span class="tech-icon">💭</span>
+          <span class="tech-head-text">
+            <h3>Reestructuración cognitiva</h3>
+            <span class="tech-badge mono">Cambio profundo</span>
+          </span>
+          <span class="tech-toggle">+</span>
+        </button>
+        <div class="tech-body">
+          <div class="tech-body-inner">
+            <p>Ante un evento de tráfico, identifica el pensamiento automático ("me lo hizo a propósito") y dispútalo con una alternativa más racional ("probablemente no me vio"). Técnica ABC de Albert Ellis aplicada al volante.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tech-card reveal" data-color="verde">
+        <button class="tech-card-head">
+          <span class="tech-icon">🎧</span>
+          <span class="tech-head-text">
+            <h3>Audios de relajación</h3>
+            <span class="tech-badge mono">Cambio profundo</span>
+          </span>
+          <span class="tech-toggle">+</span>
+        </button>
+        <div class="tech-body">
+          <div class="tech-body-inner">
+            <p>Contenido guiado para escuchar durante el propio trayecto: convierte el tiempo en el carro en un ritual de preparación o de cierre del día, en lugar de un tiempo perdido.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- RUTA / RECOMENDACIONES -->
+<section class="section--ruta" id="ruta">
+  <div class="container">
+    <div class="reveal">
+      <span class="eyebrow eyebrow--ambar">La ruta recomendada</span>
+      <h2 class="title-xl display">Tu checklist para antes, durante y después del viaje</h2>
+      <p class="lead">Tres paradas, tres momentos para intervenir antes de que el estrés se acumule.</p>
+    </div>
+
+    <div class="ruta">
+      <div class="parada reveal" data-fase="antes">
+        <div class="parada-num">1</div>
+        <h3>Antes de salir</h3>
+        <span class="parada-sub mono">Preparación</span>
+        <ul>
+          <li>Sal con 15 minutos de margen sobre lo que crees necesitar.</li>
+          <li>Define una intención del viaje: "hoy llego en calma".</li>
+          <li>Prepara una playlist o un audio tranquilo para el camino.</li>
+        </ul>
+      </div>
+
+      <div class="parada reveal" data-fase="durante">
+        <div class="parada-num">2</div>
+        <h3>Durante el trayecto</h3>
+        <span class="parada-sub mono">Regulación activa</span>
+        <ul>
+          <li>Usa cada semáforo en rojo como pausa de respiración.</li>
+          <li>Juega a inventar una razón comprensiva para el otro conductor.</li>
+          <li>Mantén distancia de seguridad: menos frenadas, menos sobresaltos.</li>
+        </ul>
+      </div>
+
+      <div class="parada reveal" data-fase="despues">
+        <div class="parada-num">3</div>
+        <h3>Al llegar</h3>
+        <span class="parada-sub mono">Cierre y transición</span>
+        <ul>
+          <li>Dedica 3 minutos de transición antes de entrar a casa o al trabajo.</li>
+          <li>Registra brevemente cómo te sentiste en el camino.</li>
+          <li>Comparte tu día sin cargar el cansancio del trayecto sobre los demás.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACTO -->
+<section class="section--impacto" id="impacto">
+  <div class="container">
+    <div class="reveal">
+      <span class="eyebrow eyebrow--verde">El impacto esperado</span>
+      <h2 class="title-xl display">Un programa, cinco grupos beneficiados</h2>
+      <p class="lead">El piloto "Viaja con Calma" se valida primero con casos reales y, si funciona, escala a toda la ciudad.</p>
+    </div>
+
+    <div class="impacto-grid">
+      <div class="impacto-card reveal">
+        <div class="impacto-icon">🚗</div>
+        <h3>Conductores</h3>
+        <p>Menor irritabilidad al volante</p>
+      </div>
+      <div class="impacto-card reveal">
+        <div class="impacto-icon">💼</div>
+        <h3>Trabajadores</h3>
+        <p>Menos agotamiento emocional</p>
+      </div>
+      <div class="impacto-card reveal">
+        <div class="impacto-icon">🎓</div>
+        <h3>Estudiantes</h3>
+        <p>Mayor tranquilidad al llegar</p>
+      </div>
+      <div class="impacto-card reveal">
+        <div class="impacto-icon">👪</div>
+        <h3>Familias</h3>
+        <p>Mejor convivencia en casa</p>
+      </div>
+      <div class="impacto-card reveal">
+        <div class="impacto-icon">🌍</div>
+        <h3>Sociedad</h3>
+        <p>Mayor bienestar emocional</p>
+      </div>
+    </div>
+
+    <div class="resultados reveal">
+      <div>
+        <h3 class="display">Resultados que esperamos validar</h3>
+        <p>
+          Con el piloto junto a Carlos y otros trabajadores de Tarapoto buscamos confirmar
+          que una intervención psicológica breve puede transformar la experiencia diaria
+          del tráfico. Si los resultados son positivos, "Viaja con Calma" podrá
+          implementarse en empresas, universidades e instituciones públicas de la ciudad.
+        </p>
+      </div>
+      <ul class="check-list">
+        <li><span class="check-mark">✓</span> Reducir el estrés diario</li>
+        <li><span class="check-mark">✓</span> Disminuir la ansiedad en los desplazamientos</li>
+        <li><span class="check-mark">✓</span> Mejorar el control emocional</li>
+        <li><span class="check-mark">✓</span> Incrementar el bienestar psicológico</li>
+        <li><span class="check-mark">✓</span> Mejorar relaciones familiares y laborales</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FRASES -->
+<section class="section--frases" id="frases">
+  <div class="container" style="text-align:center;">
+    <div class="reveal">
+      <span class="eyebrow eyebrow--verde">Para repetirte en el camino</span>
+      <h2 class="title-xl display">Frases para sostener la calma</h2>
+      <p class="lead" style="margin:0 auto;">Pequeños recordatorios psicológicos para los momentos de mayor tensión al volante.</p>
+    </div>
+
+    <div class="frase-wrap reveal">
+      <div class="frase-card">
+        <div class="frase-quote-mark display">"</div>
+        <p class="frase-text" id="fraseText">No controlo el semáforo, controlo mi respiración.</p>
+      </div>
+      <div class="frase-controls">
+        <button class="btn-frase" id="fraseBtn">Siguiente frase →</button>
+        <span class="frase-count mono" id="fraseCount">1 / 10</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CIERRE -->
+<section class="section--cierre" id="cierre">
+  <div class="container">
+    <h2 class="cierre-title reveal">Cada minuto de calma se multiplica al llegar a casa</h2>
+    <p class="cierre-text reveal">
+      Cada minuto atrapado en el tráfico no solo afecta nuestro tiempo: también impacta
+      nuestra salud mental, nuestras relaciones y nuestra calidad de vida. MID TRAFICT y
+      el programa "Viaja con Calma" buscan demostrar que una sociedad emocionalmente más
+      sana está mejor preparada para enfrentar los desafíos cotidianos.
+    </p>
+    <button class="btn-cta reveal" id="ctaBtn">Quiero ser parte del piloto</button>
+  </div>
+</section>
+
+<footer>
+  <p>Elevator Pitch para el curso de <strong>Creatividad e Innovación</strong> · Psicología · Richard Viena Minaya</p>
+  <p>Programa propuesto: "Viaja con Calma" · Proyecto: MID TRAFICT</p>
+</footer>
+
+<script>
+/* ===== SCROLL REVEAL ===== */
+const revealEls = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+revealEls.forEach((el) => revealObserver.observe(el));
+
+/* ===== SIDE SEMAFORO SCROLL PROGRESS ===== */
+const dotRojo = document.getElementById('dotRojo');
+const dotAmbar = document.getElementById('dotAmbar');
+const dotVerde = document.getElementById('dotVerde');
+
+function updateScrollSemaforo() {
+  const scrollTop = window.scrollY;
+  const docHeight = document.body.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+
+  dotRojo.classList.toggle('lit-rojo', pct > 2);
+  dotAmbar.classList.toggle('lit-ambar', pct > 34);
+  dotVerde.classList.toggle('lit-verde', pct > 68);
+}
+window.addEventListener('scroll', updateScrollSemaforo);
+updateScrollSemaforo();
+
+/* ===== TECNICAS ACCORDION ===== */
+const techCards = document.querySelectorAll('.tech-card');
+techCards.forEach((card) => {
+  const head = card.querySelector('.tech-card-head');
+  head.addEventListener('click', () => {
+    const isOpen = card.classList.contains('open');
+    techCards.forEach((c) => c.classList.remove('open'));
+    if (!isOpen) card.classList.add('open');
+  });
+});
+
+/* ===== BREATHING RING ===== */
+const ring = document.getElementById('ringFill');
+const breathNum = document.getElementById('breathNum');
+const breathState = document.getElementById('breathState');
+const breathBtn = document.getElementById('breathBtn');
+
+const CIRC = 251.2;
+const fases = [
+  { label: 'Inhala', dur: 4, target: 0 },
+  { label: 'Sostén', dur: 4, target: 0 },
+  { label: 'Exhala', dur: 6, target: CIRC }
+];
+
+let breathing = false;
+let faseIndex = 0;
+let ciclo = 0;
+let countdownTimer = null;
+let nextPhaseTimer = null;
+
+function setRing(durSec, target) {
+  ring.style.transitionDuration = durSec + 's';
+  ring.style.transitionTimingFunction = 'linear';
+  // force reflow so the duration change takes effect before animating
+  void ring.getBoundingClientRect();
+  ring.style.strokeDashoffset = target;
+}
+
+function runFase() {
+  if (ciclo >= 3) {
+    stopBreathing();
+    breathState.textContent = '¡completado! 3 ciclos';
+    breathNum.textContent = '✓';
+    return;
+  }
+  const fase = fases[faseIndex];
+  breathState.textContent = fase.label + '…';
+  setRing(fase.dur, fase.target);
+
+  let restante = fase.dur;
+  breathNum.textContent = restante;
+  clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
+    restante--;
+    breathNum.textContent = restante > 0 ? restante : '';
+    if (restante <= 0) clearInterval(countdownTimer);
+  }, 1000);
+
+  clearTimeout(nextPhaseTimer);
+  nextPhaseTimer = setTimeout(() => {
+    faseIndex++;
+    if (faseIndex >= fases.length) {
+      faseIndex = 0;
+      ciclo++;
+    }
+    runFase();
+  }, fase.dur * 1000);
+}
+
+function stopBreathing() {
+  breathing = false;
+  clearInterval(countdownTimer);
+  clearTimeout(nextPhaseTimer);
+  breathBtn.textContent = 'Iniciar ejercicio';
+}
+
+function resetBreathing() {
+  stopBreathing();
+  faseIndex = 0;
+  ciclo = 0;
+  setRing(0.3, CIRC);
+  breathNum.textContent = '—';
+  breathState.textContent = 'listo para comenzar';
+}
+
+breathBtn.addEventListener('click', () => {
+  if (breathing) {
+    resetBreathing();
+    return;
+  }
+  breathing = true;
+  faseIndex = 0;
+  ciclo = 0;
+  breathBtn.textContent = 'Detener';
+  runFase();
+});
+
+/* ===== FRASES CAROUSEL ===== */
+const frases = [
+  'No controlo el semáforo, controlo mi respiración.',
+  'Cada bocina ajena no define mi calma.',
+  'Llegar tranquilo también es llegar a tiempo.',
+  'Mi paciencia hoy es un regalo para mi familia.',
+  'El tráfico se mueve. Mi ansiedad no tiene por qué.',
+  'Respiro, sostengo, suelto: así suelto también la prisa.',
+  'Soy más grande que cualquier embotellamiento.',
+  'Hoy elijo ser el conductor que quiero encontrarme.',
+  'Mi mente no está atrapada, aunque el carro sí.',
+  'Cada minuto de calma se multiplica al llegar a casa.'
+];
+
+let fraseIndex = 0;
+const fraseText = document.getElementById('fraseText');
+const fraseCount = document.getElementById('fraseCount');
+const fraseBtn = document.getElementById('fraseBtn');
+let fraseAuto = null;
+
+function showFrase(i) {
+  fraseText.style.opacity = '0';
+  setTimeout(() => {
+    fraseIndex = i;
+    fraseText.textContent = frases[fraseIndex];
+    fraseCount.textContent = (fraseIndex + 1) + ' / ' + frases.length;
+    fraseText.style.opacity = '1';
+  }, 220);
+}
+
+function nextFrase() {
+  showFrase((fraseIndex + 1) % frases.length);
+}
+
+fraseBtn.addEventListener('click', () => {
+  nextFrase();
+  clearInterval(fraseAuto);
+  fraseAuto = setInterval(nextFrase, 7000);
+});
+fraseAuto = setInterval(nextFrase, 7000);
+
+/* ===== CIERRE CTA ===== */
+const ctaBtn = document.getElementById('ctaBtn');
+ctaBtn.addEventListener('click', () => {
+  ctaBtn.textContent = '✓ ¡Gracias por sumarte!';
+  ctaBtn.classList.add('sent');
+  ctaBtn.disabled = true;
+});
+</script>
+</body>
+</html>
